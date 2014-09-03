@@ -73,6 +73,10 @@
 			  </div>
 			</form>
 		</div>
+
+		@if (Session::get('register'))
+		<div class="alert alert-warning" role="alert">{{{ Session::get('register') }}}</div>
+		@endif
 	</div>
 </div>
 @stop

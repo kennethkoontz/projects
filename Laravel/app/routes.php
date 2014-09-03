@@ -11,6 +11,7 @@
 |
 */
 
+
 Route::get('/', function() {
 	return View::make('landing');	
 });
@@ -19,26 +20,43 @@ Route::post('/login', function() {
 	$email = Input::get('email');
 	$password = Input::get('password');
 
-	if ($email && $password) {
-		#TODO redirect to home if email and password authenticates
+	if (Auth::attempt(array('email' => $email, 'password' => $password))) {
+		# TODO Set isAuthenticated session
 		return Redirect::to('/home');	
 	} else {
 		#TODO Flash error back
-		Session::flash('login', 'email or password invalid');
+		Session::flash('login', 'email or password invalid/missing');
 		return Redirect::to('/');	
 	}
 });
+
 
 Route::post('/register', function() {
 	$email = Input::get('email');
 	$full_name = Input::get('full_name');
 	$password = Input::get('password');
-	
-	if ($email && $full_name && $password) {
-		#TODO if successfully inserted into db
+
+	if (empty($email) || empty($full_name) || empty($password)) {
+	    Session::flash('register', 'email, fullname, or password invalid/missing');
+		return Redirect::to('/');	
+	}
+	var_dump('here');
+
+	# check if the user already exists.
+	$user = User::where('email', '=', $email)->first();
+	if ($user === null) {
+		# new user, register them
+		$user = new User;
+		$user->email = $email;
+		$user->full_name = $full_name;
+		$user->password = Hash::make($password);
+		$user->save();
+
+		# TODO Set isAuthenticated session
 		return Redirect::to('/home');	
 	} else {
-		#TODO Flash error back
+		# user with this email is already registered
+	    Session::flash('register', "$email is already registered");
 		return Redirect::to('/');	
 	}
 });
