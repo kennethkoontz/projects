@@ -13,6 +13,10 @@
 
 
 Route::get('/', function() {
+	if (Auth::check()) {
+		return Redirect::to('/home');	
+	}
+
 	return View::make('landing');	
 });
 
@@ -21,7 +25,6 @@ Route::post('/login', function() {
 	$password = Input::get('password');
 
 	if (Auth::attempt(array('email' => $email, 'password' => $password))) {
-		# TODO Set isAuthenticated session
 		return Redirect::to('/home');	
 	} else {
 		#TODO Flash error back
@@ -40,7 +43,6 @@ Route::post('/register', function() {
 	    Session::flash('register', 'email, fullname, or password invalid/missing');
 		return Redirect::to('/');	
 	}
-	var_dump('here');
 
 	# check if the user already exists.
 	$user = User::where('email', '=', $email)->first();
@@ -51,8 +53,6 @@ Route::post('/register', function() {
 		$user->full_name = $full_name;
 		$user->password = Hash::make($password);
 		$user->save();
-
-		# TODO Set isAuthenticated session
 		return Redirect::to('/home');	
 	} else {
 		# user with this email is already registered
@@ -62,5 +62,23 @@ Route::post('/register', function() {
 });
 
 Route::get('/home', function() {
-	return 'Welcome';
+	if (Auth::check()) {
+		$full_name = Auth::user()->full_name;
+		$messages = Message::all();
+		return View::make('home', array("first_name" => $full_name, "messages" => $messages));
+	}
+
+	return Redirect::to('/');	
+});
+
+Route::post('/message', function() {
+	if (Auth::check()) {
+		$body = Input::get('body');
+		$message = new Message;
+		$message->body = $body;
+		$message->user_id = Auth::id();
+		$message->save();
+	}
+
+	return Redirect::to('/');	
 });
